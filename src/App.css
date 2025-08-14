@@ -3,10 +3,20 @@
   font-family: sans-serif;
 }
 
+.table-section {
+  margin-bottom: 30px;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
 .devices-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
 }
 
 .devices-table th,
@@ -20,12 +30,9 @@
   background-color: #f2f2f2;
 }
 
-.actions {
-  margin-top: 10px;
-}
-
-.actions button {
-  padding: 10px 20px;
+.table-header button,
+.devices-table button {
+  padding: 6px 12px;
   background-color: #007bff;
   border: none;
   border-radius: 5px;
@@ -33,6 +40,7 @@
   cursor: pointer;
 }
 
-.actions button:hover {
+.table-header button:hover,
+.devices-table button:hover {
   background-color: #0056b3;
 }
