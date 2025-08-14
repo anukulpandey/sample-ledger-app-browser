@@ -1,19 +1,19 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import {
   ConsoleLogger,
   DeviceManagementKitBuilder,
 } from "@ledgerhq/device-management-kit";
 import { webHidTransportFactory } from "@ledgerhq/device-transport-kit-web-hid";
+import {speculosTransportFactory} from "@ledgerhq/device-transport-kit-speculos";
 
 function App() {
   const [availableDevices,setAvailableDevices] = useState([]);
 
   const dmk = new DeviceManagementKitBuilder()
     .addLogger(new ConsoleLogger())
-    .addTransport(webHidTransportFactory) // Transport is required!
+    .addTransport(webHidTransportFactory) // Transport is required! //this connects to the usb one
+    .addTransport(speculosTransportFactory("http://localhost:5050"))
     .build();
   
   // lists available devices
