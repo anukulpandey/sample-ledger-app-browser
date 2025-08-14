@@ -44,3 +44,14 @@
 .devices-table button:hover {
   background-color: #0056b3;
 }
+
+.disconnect-btn{
+  margin-left: 1rem;
+  background-color: #ff0000!important;
+}
+
+.monitor-btn{
+  background-color: #15ff00!important;
+  color: black!important;
+  border: 1px solid black!important;
+}

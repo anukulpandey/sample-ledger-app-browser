@@ -1,17 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-import {
-  ConsoleLogger,
-  DeviceManagementKitBuilder,
-} from "@ledgerhq/device-management-kit";
-import { webHidTransportFactory } from "@ledgerhq/device-transport-kit-web-hid";
-import { speculosTransportFactory } from "@ledgerhq/device-transport-kit-speculos";
-
-const dmk = new DeviceManagementKitBuilder()
-    .addLogger(new ConsoleLogger())
-    .addTransport(webHidTransportFactory) // USB transport
-    .addTransport(speculosTransportFactory("http://localhost:5050")) // Speculos transport
-    .build();
+import { dmk } from "./dmk/init";
 
 function App() {
   const [availableDevices, setAvailableDevices] = useState([]);
@@ -134,7 +123,7 @@ function App() {
               <th>Name</th>
               <th>Type</th>
               <th>ID</th>
-              <th>Action</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -145,9 +134,16 @@ function App() {
                   <td>{device.type || "N/A"}</td>
                   <td>{device.id || "N/A"}</td>
                   <td>
-                    <button onClick={() => monitorDeviceState(device.sessionId)}>
+                    <div>
+                    <button className="monitor-btn" onClick={() => monitorDeviceState(device.sessionId)}>
                       Monitor
                     </button>
+
+                    <button className="disconnect-btn" onClick={() => monitorDeviceState(device.sessionId)}>
+                      Disconnect
+                    </button>
+                    </div>
+                    
                   </td>
                 </tr>
               ))
