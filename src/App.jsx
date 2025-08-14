@@ -14,7 +14,7 @@ function App() {
   const dmk = new DeviceManagementKitBuilder()
     .addLogger(new ConsoleLogger())
     .addTransport(webHidTransportFactory) // USB transport
-    .addTransport(speculosTransportFactory("http://localhost:40000")) // Speculos transport
+    .addTransport(speculosTransportFactory("http://localhost:5050")) // Speculos transport
     .build();
 
   async function refreshAvailableDevices() {
