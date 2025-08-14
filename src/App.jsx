@@ -70,6 +70,16 @@ function App() {
     }
   }
 
+  async function disconnectDevice(sessionId) {
+    try {
+      await dmk.disconnect({ sessionId });
+      console.log("Device disconnected successfully");
+    } catch (error) {
+      console.error("Disconnection error:", error);
+    }
+  }
+
+
   return (
     <div className="container">
       <h2>Ledger Device Manager</h2>
@@ -139,7 +149,7 @@ function App() {
                       Monitor
                     </button>
 
-                    <button className="disconnect-btn" onClick={() => monitorDeviceState(device.sessionId)}>
+                    <button className="disconnect-btn" onClick={() => disconnectDevice(device.sessionId)}>
                       Disconnect
                     </button>
                     </div>
