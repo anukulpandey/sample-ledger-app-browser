@@ -7,15 +7,15 @@ import {
 import { webHidTransportFactory } from "@ledgerhq/device-transport-kit-web-hid";
 import { speculosTransportFactory } from "@ledgerhq/device-transport-kit-speculos";
 
-function App() {
-  const [availableDevices, setAvailableDevices] = useState([]);
-  const [connectedDevices, setConnectedDevices] = useState([]);
-
-  const dmk = new DeviceManagementKitBuilder()
+const dmk = new DeviceManagementKitBuilder()
     .addLogger(new ConsoleLogger())
     .addTransport(webHidTransportFactory) // USB transport
     .addTransport(speculosTransportFactory("http://localhost:5050")) // Speculos transport
     .build();
+
+function App() {
+  const [availableDevices, setAvailableDevices] = useState([]);
+  const [connectedDevices, setConnectedDevices] = useState([]);
 
   async function refreshAvailableDevices() {
     const subscription = dmk.listenToAvailableDevices().subscribe({
@@ -28,14 +28,39 @@ function App() {
       },
     });
 
+    // Stop listening after a short delay to avoid constant polling
     setTimeout(() => subscription.unsubscribe(), 500);
   }
 
-  
+  function monitorDeviceState(sessionId) {
+    return dmk.getDeviceSessionState({ sessionId }).subscribe({
+      next: (state) => {
+        console.log(`Device status: ${state.deviceStatus}`);
+
+        if (state.deviceStatus === "LOCKED") {
+          console.log("Device is locked - please enter your PIN");
+        }
+
+        if (state.batteryStatus) {
+          console.log(`Battery level: ${state.batteryStatus.level}%`);
+        }
+
+        if (state.currentApp) {
+          console.log(`Current app: ${state.currentApp.name}`);
+          console.log(`App version: ${state.currentApp.version}`);
+        }
+
+        console.log(`Device model: ${state.deviceModelId}`);
+      },
+      error: (error) => {
+        console.error("State monitoring error:", error);
+      },
+    });
+  }
 
   async function connectToDevice(device) {
     try {
-      console.log("Connecting to ",device)
+      console.log("Connecting to", device);
       const sessionId = await dmk.connect({ device });
       console.log(`Connected! Session ID: ${sessionId}`);
 
@@ -43,9 +68,13 @@ function App() {
       console.log(`Device name: ${connectedDevice.name}`);
       console.log(`Device model: ${connectedDevice.modelId}`);
 
-      setConnectedDevices((prev) => [...prev, connectedDevice]);
-      setAvailableDevices((prev) => prev.filter((d) => d.id !== device.id));
+      // Attach the sessionId so we can use it later for monitoring
+      setConnectedDevices((prev) => [
+        ...prev,
+        { ...connectedDevice, sessionId }
+      ]);
 
+      setAvailableDevices((prev) => prev.filter((d) => d.id !== device.id));
       return sessionId;
     } catch (error) {
       console.error("Connection failed:", error);
@@ -105,7 +134,7 @@ function App() {
               <th>Name</th>
               <th>Type</th>
               <th>ID</th>
-              <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -115,7 +144,11 @@ function App() {
                   <td>{device.name || "Unknown"}</td>
                   <td>{device.type || "N/A"}</td>
                   <td>{device.id || "N/A"}</td>
-                  <td>Connected</td>
+                  <td>
+                    <button onClick={() => monitorDeviceState(device.sessionId)}>
+                      Monitor
+                    </button>
+                  </td>
                 </tr>
               ))
             ) : (
