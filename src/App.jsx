@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import { dmk } from "./dmk/init";
 
@@ -9,8 +9,12 @@ function App() {
   async function refreshAvailableDevices() {
     const subscription = dmk.listenToAvailableDevices().subscribe({
       next: (devices) => {
-        setAvailableDevices(devices);
-        console.log("Available devices:", devices);
+        // Filter out devices that are already connected
+        const connectedIds = connectedDevices.map((cd) => cd.id);
+        const filtered = devices.filter((d) => !connectedIds.includes(d.id));
+
+        setAvailableDevices(filtered);
+        console.log("Available devices (filtered):", filtered);
       },
       error: (error) => {
         console.error("Error:", error);
@@ -63,6 +67,7 @@ function App() {
         { ...connectedDevice, sessionId }
       ]);
 
+      // Remove from available list
       setAvailableDevices((prev) => prev.filter((d) => d.id !== device.id));
       return sessionId;
     } catch (error) {
@@ -74,11 +79,17 @@ function App() {
     try {
       await dmk.disconnect({ sessionId });
       console.log("Device disconnected successfully");
+
+      // Remove from connected devices
+      setConnectedDevices((prev) => prev.filter((d) => d.sessionId !== sessionId));
     } catch (error) {
       console.error("Disconnection error:", error);
     }
   }
 
+  useEffect(()=>{
+    refreshAvailableDevices();
+  },[connectedDevices])
 
   return (
     <div className="container">
@@ -145,15 +156,19 @@ function App() {
                   <td>{device.id || "N/A"}</td>
                   <td>
                     <div>
-                    <button className="monitor-btn" onClick={() => monitorDeviceState(device.sessionId)}>
-                      Monitor
-                    </button>
-
-                    <button className="disconnect-btn" onClick={() => disconnectDevice(device.sessionId)}>
-                      Disconnect
-                    </button>
+                      <button
+                        className="monitor-btn"
+                        onClick={() => monitorDeviceState(device.sessionId)}
+                      >
+                        Monitor
+                      </button>
+                      <button
+                        className="disconnect-btn"
+                        onClick={() => disconnectDevice(device.sessionId)}
+                      >
+                        Disconnect
+                      </button>
                     </div>
-                    
                   </td>
                 </tr>
               ))
