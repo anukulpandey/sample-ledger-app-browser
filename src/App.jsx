@@ -1,22 +1,21 @@
-import { useState } from 'react'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
 import {
   ConsoleLogger,
   DeviceManagementKitBuilder,
 } from "@ledgerhq/device-management-kit";
 import { webHidTransportFactory } from "@ledgerhq/device-transport-kit-web-hid";
-import {speculosTransportFactory} from "@ledgerhq/device-transport-kit-speculos";
+import { speculosTransportFactory } from "@ledgerhq/device-transport-kit-speculos";
 
 function App() {
-  const [availableDevices,setAvailableDevices] = useState([]);
+  const [availableDevices, setAvailableDevices] = useState([]);
 
   const dmk = new DeviceManagementKitBuilder()
     .addLogger(new ConsoleLogger())
-    .addTransport(webHidTransportFactory) // Transport is required! //this connects to the usb one
-    .addTransport(speculosTransportFactory("http://localhost:5050"))
+    .addTransport(webHidTransportFactory) // USB transport
+    .addTransport(speculosTransportFactory("http://localhost:5050")) // Speculos transport
     .build();
-  
-  // lists available devices
+
   async function connectToDevice() {
     const subscription = dmk.listenToAvailableDevices().subscribe({
       next: (devices) => {
@@ -30,19 +29,45 @@ function App() {
         console.log("Completed");
       },
     });
-    
-    // Stop listening to available devices
-    subscription.unsubscribe();
+
+    setTimeout(() => subscription.unsubscribe(), 500);
   }
 
   return (
-    <>
-    <div>
-      Available Devices: {availableDevices.length}
+    <div className="container">
+      <h2>Available Devices: {availableDevices.length}</h2>
+
+      <table className="devices-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          {availableDevices.length > 0 ? (
+            availableDevices.map((device, index) => (
+              <tr key={index}>
+                <td>{device.name || "Unknown"}</td>
+                <td>{device.type || "N/A"}</td>
+                <td>{device.id || "N/A"}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="3">No devices found</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+      <div className="actions">
+        <h3>Actions</h3>
+        <button onClick={connectToDevice}>Fetch Available Devices</button>
+      </div>
     </div>
-     <button onClick={async()=>await connectToDevice()}>Fetch Available Devices</button>
-    </>
-  )
+  );
 }
 
-export default App
+export default App;
