@@ -14,7 +14,7 @@ function App() {
   const dmk = new DeviceManagementKitBuilder()
     .addLogger(new ConsoleLogger())
     .addTransport(webHidTransportFactory) // USB transport
-    .addTransport(speculosTransportFactory("http://localhost:5050")) // Speculos transport
+    .addTransport(speculosTransportFactory("http://localhost:40000")) // Speculos transport
     .build();
 
   async function refreshAvailableDevices() {
@@ -31,8 +31,11 @@ function App() {
     setTimeout(() => subscription.unsubscribe(), 500);
   }
 
+  
+
   async function connectToDevice(device) {
     try {
+      console.log("Connecting to ",device)
       const sessionId = await dmk.connect({ device });
       console.log(`Connected! Session ID: ${sessionId}`);
 
