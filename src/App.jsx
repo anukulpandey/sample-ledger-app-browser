@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { dmk } from "./dmk/init";
-import { CloseAppCommand } from "@ledgerhq/device-management-kit";
+import { CloseAppCommand,GetAppAndVersionCommand,GetOsVersionCommand } from "@ledgerhq/device-management-kit";
+import { SignerEthBuilder } from "@ledgerhq/device-signer-kit-ethereum";
 
 function App() {
   const [availableDevices, setAvailableDevices] = useState([]);
@@ -33,6 +34,26 @@ function App() {
     // Send the command
    const response= await dmk.sendCommand({ sessionId, command });
    console.log("closeApp response ===",response);
+  }
+
+  const defineEtherSigner = async(sessionId)=>{
+    // Initialize an Ethereum signer instance using default context module
+    const signerEth = new SignerEthBuilder({
+      dmk,
+      sessionId,
+      originToken: "origin-token",
+    }).build();
+
+    console.log("signerEth===",signerEth)
+  }
+
+  const getAppAndVersion = async(sessionId)=>{
+    const command = new GetAppAndVersionCommand();
+ 
+    // Send the command and get the response
+    const response = await dmk.sendCommand({ sessionId, command });
+     
+    console.log(response.data);
   }
 
   function monitorDeviceState(sessionId) {
@@ -173,7 +194,19 @@ function App() {
                         Monitor
                       </button>
                       <button
-                        className="disconnect-btn"
+                        className="normal-btn"
+                        onClick={() => getAppAndVersion(device.sessionId)}
+                      >
+                        Get App info
+                      </button>
+                      <button
+                        className="normal-btn"
+                        onClick={() => defineEtherSigner(device.sessionId)}
+                      >
+                        defineEtherSigner
+                      </button>
+                      <button
+                        className="normal-btn"
                         onClick={() => closeApp(device.sessionId)}
                       >
                         Close App
