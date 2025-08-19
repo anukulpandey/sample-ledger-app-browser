@@ -28,7 +28,7 @@ docker run --rm -it \
   -v /Users/anukul/Desktop/speculos:/app \
   -p 5050:5000 \
   ghcr.io/ledgerhq/speculos \
-  --model nanos \
+  --model nanox \
   --display headless \
   --api-port 5000 \
   /app/app.elf
