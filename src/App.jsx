@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { dmk } from "./dmk/init";
+import { CloseAppCommand } from "@ledgerhq/device-management-kit";
 
 function App() {
   const [availableDevices, setAvailableDevices] = useState([]);
@@ -23,6 +24,15 @@ function App() {
 
     // Stop listening after a short delay to avoid constant polling
     setTimeout(() => subscription.unsubscribe(), 500);
+  }
+
+  const closeApp = async(sessionId)=>{
+    // Create the command to close the current app
+    const command = new CloseAppCommand();
+    
+    // Send the command
+   const response= await dmk.sendCommand({ sessionId, command });
+   console.log("closeApp response ===",response);
   }
 
   function monitorDeviceState(sessionId) {
@@ -161,6 +171,12 @@ function App() {
                         onClick={() => monitorDeviceState(device.sessionId)}
                       >
                         Monitor
+                      </button>
+                      <button
+                        className="disconnect-btn"
+                        onClick={() => closeApp(device.sessionId)}
+                      >
+                        Close App
                       </button>
                       <button
                         className="disconnect-btn"
