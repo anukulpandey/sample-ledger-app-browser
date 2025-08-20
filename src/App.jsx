@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { dmk } from "./dmk/init";
-import { CloseAppCommand,GetAppAndVersionCommand,GetOsVersionCommand } from "@ledgerhq/device-management-kit";
+import { CloseAppCommand, GetAppAndVersionCommand, GetOsVersionCommand } from "@ledgerhq/device-management-kit";
 import { SignerEthBuilder } from "@ledgerhq/device-signer-kit-ethereum";
+import {
+  ApduBuilder,
+  ApduParser,
+  CommandUtils,
+} from "@ledgerhq/device-management-kit";
 
 function App() {
   const [availableDevices, setAvailableDevices] = useState([]);
@@ -27,16 +32,47 @@ function App() {
     setTimeout(() => subscription.unsubscribe(), 500);
   }
 
-  const closeApp = async(sessionId)=>{
-    // Create the command to close the current app
-    const command = new CloseAppCommand();
+  const sendApduGetVersion = async (sessionId) => {
+    const getVersionApduArgs = {
+      cla: 0xE0,
+      ins: 0x01,   // your command ID
+      p1: 0x00,
+      p2: 0x00,
+      data: new Uint8Array([])
+    };
     
-    // Send the command
-   const response= await dmk.sendCommand({ sessionId, command });
-   console.log("closeApp response ===",response);
+
+    const apdu = new ApduBuilder(getVersionApduArgs).build();
+
+    // Send the APDU to the device
+    const apduResponse = await dmk.sendApdu({ sessionId, apdu });
+
+    console.log("apduResponse===",apduResponse)
+
+
+    // Parse the result
+    const parser = new ApduParser(apduResponse);
+
+    // Check if the command was successful
+    if (!CommandUtils.isSuccessResponse(apduResponse)) {
+      throw new Error(
+        `Unexpected status word: ${parser.encodeToHexaString(
+          apduResponse.statusCode,
+        )}`,
+      );
+    }
   }
 
-  const defineEtherSigner = async(sessionId)=>{
+  const closeApp = async (sessionId) => {
+    // Create the command to close the current app
+    const command = new CloseAppCommand();
+
+    // Send the command
+    const response = await dmk.sendCommand({ sessionId, command });
+    console.log("closeApp response ===", response);
+  }
+
+  const defineEtherSigner = async (sessionId) => {
     // Initialize an Ethereum signer instance using default context module
     const signerEth = new SignerEthBuilder({
       dmk,
@@ -44,15 +80,15 @@ function App() {
       originToken: "origin-token",
     }).build();
 
-    console.log("signerEth===",signerEth)
+    console.log("signerEth===", signerEth)
   }
 
-  const getAppAndVersion = async(sessionId)=>{
+  const getAppAndVersion = async (sessionId) => {
     const command = new GetAppAndVersionCommand();
- 
+
     // Send the command and get the response
     const response = await dmk.sendCommand({ sessionId, command });
-     
+
     console.log(response.data);
   }
 
@@ -118,9 +154,9 @@ function App() {
     }
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     refreshAvailableDevices();
-  },[connectedDevices])
+  }, [connectedDevices])
 
   return (
     <div className="container">
@@ -198,6 +234,12 @@ function App() {
                         onClick={() => getAppAndVersion(device.sessionId)}
                       >
                         Get App info
+                      </button>
+                      <button
+                        className="normal-btn"
+                        onClick={() => sendApduGetVersion(device.sessionId)}
+                      >
+                        sendApduGetVersion
                       </button>
                       <button
                         className="normal-btn"
