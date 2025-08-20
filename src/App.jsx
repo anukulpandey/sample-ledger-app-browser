@@ -8,6 +8,7 @@ import {
   ApduParser,
   CommandUtils,
 } from "@ledgerhq/device-management-kit";
+import { Buffer } from "buffer";
 
 function App() {
   const [availableDevices, setAvailableDevices] = useState([]);
@@ -31,37 +32,25 @@ function App() {
     // Stop listening after a short delay to avoid constant polling
     setTimeout(() => subscription.unsubscribe(), 500);
   }
-
+  
   const sendApduGetVersion = async (sessionId) => {
-    const getVersionApduArgs = {
-      cla: 0xE0,
-      ins: 0x01,   // your command ID
-      p1: 0x00,
-      p2: 0x00,
-      data: new Uint8Array([])
-    };
-    
-
-    const apdu = new ApduBuilder(getVersionApduArgs).build();
-
-    // Send the APDU to the device
-    const apduResponse = await dmk.sendApdu({ sessionId, apdu });
-
-    console.log("apduResponse===",apduResponse)
-
-
-    // Parse the result
+    // Manually build APDU bytes: CLA | INS | P1 | P2 | Lc
+    const apduBytes = new Uint8Array([0xa2, 0x00, 0x00, 0x00, 0x00]);
+  
+    // Send the APDU as raw Uint8Array
+    const apduResponse = await dmk.sendApdu({
+      sessionId,
+      apdu: apduBytes, // <-- raw Uint8Array, not string
+    });
+  
     const parser = new ApduParser(apduResponse);
 
-    // Check if the command was successful
-    if (!CommandUtils.isSuccessResponse(apduResponse)) {
-      throw new Error(
-        `Unexpected status word: ${parser.encodeToHexaString(
-          apduResponse.statusCode,
-        )}`,
-      );
-    }
-  }
+    console.log("parser===",parser.encodeToHexaString(
+      apduResponse.data,
+    ))
+  };
+  
+  
 
   const closeApp = async (sessionId) => {
     // Create the command to close the current app

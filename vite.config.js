@@ -7,4 +7,7 @@ export default defineConfig({
   define: {
     global: 'window',
   },
+  optimizeDeps: {
+    include: ["buffer"],
+  },
 })
